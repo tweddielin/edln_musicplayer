@@ -152,6 +152,7 @@
             border-radius: 3px;
             position: relative;
             cursor: pointer;
+            touch-action: none; /* Prevent default touch actions */
         }
         
         .progress {
@@ -325,7 +326,7 @@
             <div class="brand-logo">
                 <img src="images/eddie-play-two-keys-square-small.jpeg" alt="EDLN">
             </div>
-            <h1 class="brand-name">Playlist</h1>
+            <h1 class="brand-name">EDLN</h1>
         </header>
         
         <div class="now-playing">
@@ -403,6 +404,9 @@
         const muteBtn = document.getElementById('mute-btn');
         let previousVolume = 0.7; // Default volume
         
+        // Progress bar dragging variables
+        let isDragging = false;
+        
         // Music tracks data (replace with your actual tracks)
         // You'll need to update these paths to match your Synology file structure
         const tracks = [
@@ -411,14 +415,14 @@
                 artist: "EDLN",
                 file: "music/CosmicCalling.wav",
                 duration: "3:56",
-                cover: "images/EDLN_logo_1472px.png" // Add album art image path
+                cover: "images/cosmic-calling-cover.jpg" // Add album art image path
             },
             {
                 title: "Jaap Stama",
                 artist: "Casa Lei/EDLN",
                 file: "music/jaapstam_v0.5.wav",
                 duration: "2:29",
-                cover: "images/EDLN_logo_1472px.png" // Add album art image path
+                cover: "images/jaap-stama-cover.jpg" // Add album art image path
             }
             // {
             //     title: "Your Track 3",
@@ -448,8 +452,6 @@
         
         // Initialize player
         function initPlayer() {
-            // Set initial track source
-            audioPlayer.src = tracks[currentTrackIndex].file;
             // Populate playlist
             tracks.forEach((track, index) => {
                 const item = document.createElement('div');
@@ -482,7 +484,17 @@
             nextBtn.addEventListener('click', playNextTrack);
             audioPlayer.addEventListener('timeupdate', updateProgress);
             audioPlayer.addEventListener('ended', playNextTrack);
+            
+            // Progress bar event listeners for dragging
             progressBar.addEventListener('click', setProgress);
+            progressBar.addEventListener('mousedown', enableDrag);
+            document.addEventListener('mouseup', disableDrag);
+            document.addEventListener('mousemove', dragProgress);
+            
+            // Touch events for mobile
+            progressBar.addEventListener('touchstart', enableDrag);
+            document.addEventListener('touchend', disableDrag);
+            document.addEventListener('touchmove', dragProgress);
             
             // Volume control events
             audioPlayer.volume = volumeSlider.value;
@@ -611,12 +623,64 @@
             }
         }
         
-        // Set progress by clicking on progress bar
+        // Set progress by clicking or dragging on progress bar
         function setProgress(e) {
-            const width = this.clientWidth;
-            const clickX = e.offsetX;
+            const width = progressBar.clientWidth;
+            const clickX = e.type.includes('touch') ? e.touches[0].clientX - progressBar.getBoundingClientRect().left : e.offsetX;
             const duration = audioPlayer.duration;
-            audioPlayer.currentTime = (clickX / width) * duration;
+            
+            if (clickX >= 0 && clickX <= width) {
+                audioPlayer.currentTime = (clickX / width) * duration;
+            }
+        }
+        
+        // Enable dragging functionality
+        function enableDrag(e) {
+            isDragging = true;
+            
+            // If it's a touch event, prevent default to avoid scrolling
+            if (e.type.includes('touch')) {
+                e.preventDefault();
+                setProgress(e); // Update position immediately for touch
+            }
+            
+            // Add active styling to progress bar when dragging
+            progressBar.style.cursor = 'grabbing';
+        }
+        
+        // Disable dragging functionality
+        function disableDrag() {
+            isDragging = false;
+            progressBar.style.cursor = 'pointer';
+        }
+        
+        // Handle progress dragging
+        function dragProgress(e) {
+            if (isDragging) {
+                e.preventDefault();
+                if (e.type.includes('touch')) {
+                    const touchX = e.touches[0].clientX - progressBar.getBoundingClientRect().left;
+                    const width = progressBar.clientWidth;
+                    
+                    if (touchX >= 0 && touchX <= width) {
+                        const newTime = (touchX / width) * audioPlayer.duration;
+                        audioPlayer.currentTime = newTime;
+                        progress.style.width = `${(touchX / width) * 100}%`;
+                        currentTimeEl.textContent = formatTime(newTime);
+                    }
+                } else {
+                    const rect = progressBar.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const width = progressBar.clientWidth;
+                    
+                    if (mouseX >= 0 && mouseX <= width) {
+                        const newTime = (mouseX / width) * audioPlayer.duration;
+                        audioPlayer.currentTime = newTime;
+                        progress.style.width = `${(mouseX / width) * 100}%`;
+                        currentTimeEl.textContent = formatTime(newTime);
+                    }
+                }
+            }
         }
         
         // Format time (convert seconds to MM:SS format)
