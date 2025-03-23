@@ -326,16 +326,16 @@
             <div class="brand-logo">
                 <img src="images/eddie-play-two-keys-square-small.jpeg" alt="EDLN">
             </div>
-            <h1 class="brand-name">Playlist</h1>
+            <h1 class="brand-name">Your Most Wanted Playlist</h1>
         </header>
         
         <div class="now-playing">
             <div class="album-art">
-                <img id="cover-image" src="images/default-cover.jpg" alt="Album Art">
+                <img id="cover-image" src="images/EDLN_logo_1472px.png" alt="Album Art">
             </div>
             <h2 class="song-title">No Track Selected</h2>
             <p class="artist-name">Select a track to begin</p>
-            <audio id="audio-player"></audio>
+            <audio id="audio-player" preload="metadata"></audio>
         </div>
         
         <div class="progress-container">
@@ -371,7 +371,7 @@
         </div>
         
         <div class="playlist">
-            <h3 class="playlist-title">Playlist</h3>
+            <!-- <h3 class="playlist-title">Your Most Wanted Playlist</h3> -->
             <div class="playlist-items" id="playlist">
                 <!-- Playlist items will be dynamically loaded here -->
             </div>
@@ -411,19 +411,21 @@
         // You'll need to update these paths to match your Synology file structure
         const tracks = [
             {
-                title: "Cosmic Calling",
-                artist: "EDLN",
-                file: "music/CosmicCalling.wav",
-                duration: "3:56",
+                title: "Jaap Stama",
+                artist: "Casa Lei/EDLN",
+                file:"music/jaapstam_v0.5.wav",
+           //     streamFile: "music/stream.php?file=jaapstam_v0.5.wav",
+                duration: "2:29",
                 cover: "images/EDLN_logo_1472px.png" // Add album art image path
             },
             {
-                title: "Jaap Stama",
-                artist: "Casa Lei/EDLN",
-                file: "music/jaapstam_v0.5.wav",
-                duration: "2:29",
+                title: "Cosmic Calling",
+                artist: "EDLN",
+                file: "music/CosmicCalling.wav",
+           //     streamFile: "music/stream.php?file=CosmicCalling.wav",
+                duration: "3:56",
                 cover: "images/EDLN_logo_1472px.png" // Add album art image path
-            }
+            },
             // {
             //     title: "Your Track 3",
             //     artist: "Your Artist Name",
@@ -486,7 +488,11 @@
             nextBtn.addEventListener('click', playNextTrack);
             audioPlayer.addEventListener('timeupdate', updateProgress);
             audioPlayer.addEventListener('ended', playNextTrack);
-            
+            // Add this new event listener here
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                // Update duration display once metadata is loaded
+                durationEl.textContent = formatTime(audioPlayer.duration);
+            });
             // Progress bar event listeners for dragging
             progressBar.addEventListener('click', setProgress);
             progressBar.addEventListener('mousedown', enableDrag);
@@ -548,6 +554,9 @@
             // Set audio source
             audioPlayer.src = tracks[index].file;
             
+            // Reset duration display until metadata is loaded
+            durationEl.textContent = "0:00";
+            
             // Update track info
             updateTrackInfo();
         }
@@ -564,7 +573,7 @@
                 coverImage.src = currentTrack.cover;
                 coverImage.alt = `${currentTrack.title} cover`;
             } else {
-                coverImage.src = 'images/default-cover.jpg';
+                coverImage.src = 'images/EDLN_logo_1472px.png';
                 coverImage.alt = 'Default cover';
             }
         }

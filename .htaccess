@@ -1,4 +1,8 @@
-<Files *.wav>
-  Header set Content-Disposition "inline"
-  Header set X-Content-Type-Options "nosniff"
-</Files>
+# Placed in /volume1/web/EDLN/music/.htaccess
+<FilesMatch "\.(mp3|wav|flac|ogg|m4a|aac)$">
+    # Check for proper referrer
+    SetEnvIf Referer "^https://playlist\.tweddielin\.com" local_referrer=1
+    Order deny,allow
+    Deny from all
+    Allow from env=local_referrer
+</FilesMatch>
