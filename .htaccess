@@ -1,0 +1,4 @@
+<Files *.wav>
+  Header set Content-Disposition "inline"
+  Header set X-Content-Type-Options "nosniff"
+</Files>
