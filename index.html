@@ -452,6 +452,8 @@
         
         // Initialize player
         function initPlayer() {
+            // Initial player
+            audioPlayer.src = tracks[currentTrackIndex].file;
             // Populate playlist
             tracks.forEach((track, index) => {
                 const item = document.createElement('div');
